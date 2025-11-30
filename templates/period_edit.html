@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}修改信息 - 经期管理系统{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 col-md-offset-3">
+        <!-- 使用与登录/注册页面一致的卡片样式 -->
+        <div class="auth-card" style="background: white; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); overflow: hidden; margin-top: 20px;">
+            <!-- 卡片头部 -->
+            <div class="auth-header" style="padding: 2rem 2rem 1.5rem; text-align: center; border-bottom: 1px solid #e9ecef;">
+                <h2 class="auth-title" style="color: #333; font-size: 2.5rem; font-weight: 600; margin-bottom: 0.5rem;">修改信息</h2>
+                <p class="auth-subtitle" style="color: #6c757d; font-size: 1.3rem;">更新您的账户信息</p>
+            </div>
+
+            <!-- 卡片主体 -->
+            <div class="auth-body" style="padding: 1.5rem 2rem 2rem;">
+                {% if error %}
+                <div class="alert alert-danger d-flex align-items-center" role="alert" style="border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 1.5rem;">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <div>{{ error }}</div>
+                </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label for="username" class="form-label" style="font-weight: 600; color: #495057; margin-bottom: 0.5rem; display: block;">用户名</label>
+                        <input type="text" class="form-control" id="username" name="username"
+                               value="{{ user.username }}" required
+                               style="border-radius: 6px; padding: 0.75rem 1rem; border: 1px solid #ced4da; transition: all 0.3s; width: 100%;">
+                        <div class="form-text" style="font-size: 1.2rem; color: #6c757d; margin-top: 0.25rem;">用户名长度应为3-20个字符</div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label for="email" class="form-label" style="font-weight: 600; color: #495057; margin-bottom: 0.5rem; display: block;">邮箱</label>
+                        <input type="email" class="form-control" id="email" name="email"
+                               value="{{ user.email }}" required
+                               style="border-radius: 6px; padding: 0.75rem 1rem; border: 1px solid #ced4da; transition: all 0.3s; width: 100%;">
+                        <div class="form-text" style="font-size: 1.2rem; color: #6c757d; margin-top: 0.25rem;">我们将通过此邮箱与您联系</div>
+                    </div>
+
+                    <!-- 按钮组 - 保持粉色按钮 -->
+                    <div class="btn-group" style="display: flex; gap: 10px; margin-top: 1.5rem;">
+                        <a href="/" class="btn btn-default"
+                           style="flex: 1; background-color: #f8f8f8; border: 1px solid #ddd; color: #333; padding: 0.75rem 1.5rem; border-radius: 6px; text-align: center; text-decoration: none; transition: all 0.3s;">
+                            取消
+                        </a>
+                        <button type="submit" class="btn btn-primary"
+                                style="flex: 1; background-color: #ffcccc; border-color: #ffcccc; color: #333; font-weight: 500; padding: 0.75rem 1.5rem; border-radius: 6px; transition: all 0.3s;">
+                            保存修改
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* 添加悬停效果 */
+    .btn-primary:hover {
+        background-color: #ffb3b3 !important;
+        border-color: #ffb3b3 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(255, 153, 153, 0.3);
+    }
+
+    .btn-default:hover {
+        background-color: #e9e9e9 !important;
+        border-color: #adadad !important;
+        transform: translateY(-1px);
+    }
+
+    .form-control:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    }
+
+    /* 响应式调整 */
+    @media (max-width: 768px) {
+        .auth-body {
+            padding: 1.5rem 1.5rem 2rem !important;
+        }
+
+        .auth-header {
+            padding: 1.5rem 1.5rem 1rem !important;
+        }
+
+        .btn-group {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,639 @@
+/* 全局样式 */
+• {
+
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Microsoft YaHei', Arial, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container-fluid {
+    padding: 0 15px;
+}
+
+.row {
+    margin-left: -15px;
+    margin-right: -15px;
+}
+
+.col-md-8, .col-md-4 {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* 导航栏样式 */
+.navbar-default {
+    background-color: #f8f8f8;
+    border-color: #e7e7e7;
+    border-radius: 0;
+    margin-bottom: 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    color: #ff6699 !important;
+    font-size: 18px;
+}
+
+.navbar-nav > li > a {
+    color: #555;
+    font-size: 14px;
+}
+
+.navbar-nav > li > a:hover {
+    color: #ff6699;
+    background-color: transparent;
+}
+
+/* 日历容器样式 */
+.calendar-container {
+    background: white;
+    border-radius: 5px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.calendar-header h2 {
+    margin: 0;
+    color: #333;
+    font-weight: bold;
+    font-size: 24px;
+}
+
+.btn-group {
+    display: flex;
+    gap: 10px;
+}
+
+/* 按钮样式 */
+.btn {
+    display: inline-block;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    background-image: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.btn-default {
+    color: #333;
+    background-color: #fff;
+    border-color: #ccc;
+}
+
+.btn-default:hover {
+    background-color: #e6e6e6;
+    border-color: #adadad;
+}
+
+.btn-pink {
+    color: #333;
+    background-color: #ffcccc;
+    border-color: #ffcccc;
+    font-weight: 500;
+}
+
+.btn-pink:hover {
+    background-color: #ffb3b3;
+    border-color: #ffb3b3;
+    color: #333;
+}
+
+.btn-danger {
+    color: #fff;
+    background-color: #d9534f;
+    border-color: #d43f3a;
+}
+
+.btn-danger:hover {
+    background-color: #c9302c;
+    border-color: #ac2925;
+}
+
+.btn-xs {
+    padding: 1px 5px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-radius: 3px;
+}
+
+/* 日历样式 */
+.calendar {
+    width: 100%;
+    border: 1px solid #eee;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.calendar-weekdays {
+    display: flex;
+    background-color: #ffcccc;
+    border-radius: 5px 5px 0 0;
+}
+
+.weekday {
+    flex: 1;
+    padding: 15px 10px;
+    text-align: center;
+    font-weight: bold;
+    border-right: 1px solid #f8f8f8;
+    color: #333;
+}
+
+.weekday:last-child {
+    border-right: none;
+}
+
+.calendar-days {
+    border-top: 1px solid #eee;
+}
+
+.calendar-week {
+    display: flex;
+}
+
+.calendar-day {
+    flex: 1;
+    padding: 20px 10px;
+    text-align: center;
+    border-right: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    min-height: 100px;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.calendar-day:last-child {
+    border-right: none;
+}
+
+.calendar-week:last-child .calendar-day {
+    border-bottom: none;
+}
+
+/* 日历日期状态样式 */
+.other-month {
+    color: #ccc;
+    background-color: #f9f9f9;
+}
+
+.period-day {
+    background-color: #ffe6e6;
+    position: relative;
+}
+
+.period-day::after {
+    content: "";
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    background-color: #ff6699;
+    border-radius: 50%;
+}
+
+.clickable-day {
+    cursor: pointer;
+}
+
+.clickable-day:hover {
+    background-color: #f0f0f0;
+    transform: scale(1.02);
+    z-index: 1;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.clickable-day.selected {
+    background-color: #ffcccc !important;
+    box-shadow: 0 0 0 2px #ff9999;
+    z-index: 2;
+}
+
+/* 经期记录面板样式 */
+.period-records-panel {
+    margin-top: 20px;
+}
+
+.panel {
+    margin-bottom: 20px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+}
+
+.panel-heading {
+    padding: 10px 15px;
+    border-bottom: 1px solid #ddd;
+    border-radius: 5px 5px 0 0;
+    background-color: #ffcccc;
+    border-color: #ffb3b3;
+}
+
+.panel-title {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+    font-weight: bold;
+}
+
+.panel-body {
+    padding: 15px;
+}
+
+.records-list {
+    margin-top: 10px;
+}
+
+.record-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    margin-bottom: 5px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    border-left: 3px solid #ffcccc;
+    transition: background-color 0.3s ease;
+}
+
+.record-item:hover {
+    background-color: #f0f0f0;
+}
+
+.record-date {
+    font-size: 14px;
+    color: #333;
+}
+
+.text-muted {
+    color: #999;
+}
+
+/* 日期详情面板样式 */
+#datePanel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 320px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    z-index: 1001;
+    display: none;
+    border: 1px solid #ddd;
+}
+
+#datePanel .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    background: linear-gradient(135deg, #ffcccc, #ffb3b3);
+    border-radius: 10px 10px 0 0;
+}
+
+#datePanel .panel-header h4 {
+    margin: 0;
+    color: #333;
+    font-weight: bold;
+}
+
+#datePanel .panel-header .close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    line-height: 1;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+#datePanel .panel-header .close:hover {
+    background-color: rgba(0,0,0,0.1);
+    border-radius: 50%;
+    color: #333;
+}
+
+#datePanel .panel-body {
+    padding: 20px;
+}
+
+#datePanel .selected-date {
+    margin-bottom: 15px;
+    padding: 12px;
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    border-left: 4px solid #ffcccc;
+}
+
+#datePanel .selected-date strong {
+    color: #666;
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+#datePanel #selectedDateText {
+    font-size: 16px;
+    color: #333;
+    font-weight: bold;
+}
+
+#datePanel .date-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#datePanel .btn {
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+    text-align: center;
+}
+
+#datePanel .btn-pink {
+    background: linear-gradient(135deg, #ffcccc, #ffb3b3);
+    color: #333;
+}
+
+#datePanel .btn-pink:hover {
+    background: linear-gradient(135deg, #ffb3b3, #ff9999);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(255, 153, 153, 0.3);
+}
+
+#datePanel .btn-default {
+    background-color: #f8f8f8;
+    color: #666;
+    border: 1px solid #ddd;
+}
+
+#datePanel .btn-default:hover {
+    background-color: #e9e9e9;
+    color: #333;
+}
+
+/* 覆盖层样式 */
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    display: none;
+}
+
+/* 表单样式 */
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: inline-block;
+    max-width: 100%;
+    margin-bottom: 5px;
+    font-weight: 700;
+}
+
+.form-control {
+    display: block;
+    width: 100%;
+    height: 34px;
+    padding: 6px 12px;
+    font-size: 14px;
+    line-height: 1.42857143;
+    color: #555;
+    background-color: #fff;
+    background-image: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,0.075);
+    transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+}
+
+.form-control:focus {
+    border-color: #66afe9;
+    outline: 0;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,0.075),0 0 8px rgba(102,175,233,0.6);
+}
+
+select.form-control {
+    height: auto;
+}
+
+/* 文本样式 */
+.text-center {
+    text-align: center;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .calendar-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .calendar-day {
+        padding: 15px 5px;
+        min-height: 80px;
+    }
+
+    #datePanel {
+        width: 90%;
+        max-width: 300px;
+    }
+
+    .calendar-container {
+        padding: 15px;
+    }
+
+    .period-records-panel {
+        margin-top: 20px;
+    }
+
+    .record-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .delete-record {
+        margin-top: 5px;
+        align-self: flex-end;
+    }
+}
+
+/* 预测日期样式 */
+.predicted-day {
+    position: relative;
+}
+
+.prediction-indicator {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    font-size: 10px;
+    line-height: 16px;
+    text-align: center;
+    color: white;
+    font-weight: bold;
+}
+
+.prediction-indicator.current {
+    background-color: #4dabf7;
+}
+
+.prediction-indicator.next {
+    background-color: #74c0fc;
+}
+
+.current-prediction {
+    background-color: #e7f5ff !important;
+    border: 1px solid #a5d8ff;
+}
+
+.next-prediction {
+    background-color: #f3f9ff !important;
+    border: 1px dashed #a5d8ff;
+}
+
+/* 日历图例 */
+.calendar-legend {
+    display: flex;
+    justify-content: center;
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin: 0 10px;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    margin-right: 5px;
+}
+
+.period-color {
+    background-color: #ffcccc;
+}
+
+.prediction-current-color {
+    background-color: #e7f5ff;
+    border: 1px solid #a5d8ff;
+}
+
+.prediction-next-color {
+    background-color: #f3f9ff;
+    border: 1px dashed #a5d8ff;
+}
+
+.legend-text {
+    font-size: 14px;
+    color: #666;
+}
+
+/* 工具类 */
+.mt-3 { margin-top: 15px; }
+.mb-3 { margin-bottom: 15px; }
+.ml-3 { margin-left: 15px; }
+.mr-3 { margin-right: 15px; }
+.p-3 { padding: 15px; }
+.pt-3 { padding-top: 15px; }
+.pb-3 { padding-bottom: 15px; }
+.pl-3 { padding-left: 15px; }
+.pr-3 { padding-right: 15px; }
+.w-100 { width: 100%; }
+.h-100 { height: 100%; }
+.d-flex { display: flex; }
+.justify-content-center { justify-content: center; }
+.align-items-center { align-items: center; }
+.flex-column { flex-direction: column; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+/* 动画效果 */
+.fade-in {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.slide-down {
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #ffcccc;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #ffb3b3;
+}

@@ -1,0 +1,844 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}经期管理系统{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- 日历部分 -->
+        <div class="col-md-8">
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <h2>{{ current_year }}年{{ current_month }}月</h2>
+                    <div class="btn-group">
+                        <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-default">&lt; 上月</a>
+                        <!-- 添加"今天"按钮 -->
+                        <button id="todayBtn" class="btn btn-info">今天</button>
+                        <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-default">下月 &gt;</a>
+                    </div>
+
+                    {% if user.is_authenticated %}
+                    <button type="button" class="btn btn-pink" data-toggle="modal" data-target="#profileModal">
+                        设置基础信息
+                    </button>
+                    {% endif %}
+                </div>
+
+                <div class="calendar">
+                    <div class="calendar-weekdays">
+                        <div class="weekday">日</div>
+                        <div class="weekday">一</div>
+                        <div class="weekday">二</div>
+                        <div class="weekday">三</div>
+                        <div class="weekday">四</div>
+                        <div class="weekday">五</div>
+                        <div class="weekday">六</div>
+                    </div>
+
+                    <div class="calendar-days">
+                        {% for week in calendar_data %}
+                        <div class="calendar-week">
+                            {% for day in week %}
+                            <div class="calendar-day
+                                {% if not day.current_month %}other-month{% endif %}
+                                {% if day.is_period %}period-day{% endif %}
+                                {% if day.is_predicted %}predicted-day{% endif %}
+                                {% if day.prediction_type == 'current' %}current-prediction{% endif %}
+                                {% if day.prediction_type == 'next' %}next-prediction{% endif %}
+                                {% if day.is_today %}today-day{% endif %}
+                                {% if day.is_future %}future-day non-clickable{% else %}clickable-day{% endif %}"
+                                data-date="{% if day.date %}{{ day.date.isoformat }}{% endif %}"
+                                data-day="{{ day.day }}"
+                                data-current-month="{{ day.current_month }}"
+                                data-is-future="{{ day.is_future }}">
+                                {{ day.day }}
+                                {% if day.is_predicted and day.prediction_type == 'current' %}
+                                <div class="prediction-indicator current">预</div>
+                                {% endif %}
+                                {% if day.is_predicted and day.prediction_type == 'next' %}
+                                <div class="prediction-indicator next">预</div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- 图例 -->
+                <div class="calendar-legend">
+                    <div class="legend-item">
+                        <span class="legend-color period-color"></span>
+                        <span class="legend-text">经期</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color prediction-current-color"></span>
+                        <span class="legend-text">当前预测</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color prediction-next-color"></span>
+                        <span class="legend-text">下次预测</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color future-color"></span>
+                        <span class="legend-text">未来日期（不可标记）</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 经期记录列表 -->
+        <div class="col-md-4">
+            <div class="period-records-panel">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">经期记录</h3>
+                    </div>
+                    <div class="panel-body">
+                        {% if user.is_authenticated %}
+                            {% if period_records %}
+                                <div class="records-list">
+                                    {% for record in period_records %}
+                                    <div class="record-item" data-record-id="{{ record.id }}">
+                                        <span class="record-date">
+                                            {{ record.start_date|date:"Y-m-d" }} 至 {{ record.end_date|date:"Y-m-d" }}
+                                            {% if record.is_predicted %}
+                                            <span class="label label-info">预测</span>
+                                            {% else %}
+                                            <span class="label label-success">确认</span>
+                                            {% endif %}
+                                        </span>
+                                        <button class="btn btn-danger btn-xs delete-record"
+                                                data-record-id="{{ record.id }}"
+                                                title="删除记录">
+                                            ×
+                                        </button>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-muted">暂无经期记录</p>
+                            {% endif %}
+                        {% else %}
+                            <p class="text-muted">请先登录查看经期记录</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 日期详情面板 -->
+<div id="datePanel" class="date-panel" style="display: none;">
+    <div class="panel-header">
+        <h4>日期详情</h4>
+        <button type="button" class="close" id="closePanel">&times;</button>
+    </div>
+    <div class="panel-body">
+        <div class="selected-date">
+            <strong>选中的日期：</strong>
+            <span id="selectedDateText"></span>
+        </div>
+        <div class="date-actions" id="dateActions">
+            <!-- 这里会根据日期状态动态显示不同的按钮 -->
+        </div>
+    </div>
+</div>
+
+<!-- 预测信息模态框 -->
+<div class="modal fade" id="predictionsModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">经期预测</h4>
+            </div>
+            <div class="modal-body">
+                <div id="predictionsContent">
+                    <p class="text-muted">加载中...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 覆盖层 -->
+<div id="overlay" style="display: none;"></div>
+
+<!-- 基础信息模态框 -->
+{% if user.is_authenticated %}
+<div class="modal fade" id="profileModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">基础信息设置</h4>
+            </div>
+            <div class="modal-body">
+                <form id="profileForm">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="cycle_length">月经间隔天数 (15-45天)</label>
+                        <select class="form-control" id="cycle_length" name="cycle_length" required>
+                            <option value="">请选择</option>
+                            <!-- 15-23天 -->
+                            {% for i in "123456789" %}
+                            <option value="{{ forloop.counter|add:14 }}"
+                                {% if user_profile.cycle_length == forloop.counter|add:14 %}selected{% endif %}>
+                                {{ forloop.counter|add:14 }}天
+                            </option>
+                            {% endfor %}
+                            <!-- 24-32天 -->
+                            {% for i in "123456789" %}
+                            <option value="{{ forloop.counter|add:23 }}"
+                                {% if user_profile.cycle_length == forloop.counter|add:23 %}selected{% endif %}>
+                                {{ forloop.counter|add:23 }}天
+                            </option>
+                            {% endfor %}
+                            <!-- 33-41天 -->
+                            {% for i in "123456789" %}
+                            <option value="{{ forloop.counter|add:32 }}"
+                                {% if user_profile.cycle_length == forloop.counter|add:32 %}selected{% endif %}>
+                                {{ forloop.counter|add:32 }}天
+                            </option>
+                            {% endfor %}
+                            <!-- 42-45天（只取前4个） -->
+                            {% for i in "1234" %}
+                            <option value="{{ forloop.counter|add:41 }}"
+                                {% if user_profile.cycle_length == forloop.counter|add:41 %}selected{% endif %}>
+                                {{ forloop.counter|add:41 }}天
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="period_length">经期持续天数 (1-10天)</label>
+                        <select class="form-control" id="period_length" name="period_length" required>
+                            <option value="">请选择</option>
+                            {% for i in "0123456789" %}
+                            <option value="{{ forloop.counter }}"
+                                {% if user_profile.period_length == forloop.counter %}selected{% endif %}>
+                                {{ forloop.counter }}天
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-pink" id="saveProfile">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+// 传递登录状态到JavaScript
+var isUserAuthenticated = {% if user.is_authenticated %}true{% else %}false{% endif %};
+var currentUser = "{{ user.username }}";
+
+$(document).ready(function() {
+    console.log("=== 文档加载完成 - 经期管理系统已启动 ===");
+
+    // 今天按钮功能
+    $('#todayBtn').on('click', function() {
+        var today = new Date();
+        var currentYear = today.getFullYear();
+        var currentMonth = today.getMonth() + 1;
+
+        // 检查是否已经在当前月份
+        var currentDisplayYear = {{ current_year }};
+        var currentDisplayMonth = {{ current_month }};
+
+        if (currentDisplayYear === currentYear && currentDisplayMonth === currentMonth) {
+            // 已经在当前月份，高亮今天
+            highlightToday();
+        } else {
+            // 跳转到当前月份
+            window.location.href = '?year=' + currentYear + '&month=' + currentMonth;
+        }
+    });
+
+    // 高亮今天的日期
+    function highlightToday() {
+        // 移除之前的高亮
+        $('.today-highlight').removeClass('today-highlight today-highlight-animate');
+
+        var today = new Date();
+        var todayFormatted = today.toISOString().split('T')[0];
+
+        var todayElement = $('.calendar-day[data-date="' + todayFormatted + '"]');
+
+        if (todayElement.length > 0) {
+            // 添加高亮类
+            todayElement.addClass('today-highlight today-highlight-animate');
+
+            // 滚动到可见区域
+            todayElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // 3秒后移除动画类，保留静态高亮
+            setTimeout(function() {
+                todayElement.removeClass('today-highlight-animate');
+            }, 3000);
+        }
+    }
+
+    // 日期点击功能 - 修复版本：未来日期不可点击
+    $(document).on('click', '.clickable-day', function(event) {
+        console.log("=== 日期点击事件开始 ===");
+        event.stopPropagation();
+
+        var $this = $(this);
+        var dateStr = $this.data('date');
+        var day = $this.data('day');
+        var isCurrentMonth = $this.data('current-month');
+        var isFuture = $this.data('is-future');
+
+        console.log("点击的日期数据:", {
+            dateStr: dateStr,
+            day: day,
+            isCurrentMonth: isCurrentMonth,
+            isFuture: isFuture
+        });
+
+        // 检查是否为未来日期 - 如果是未来日期，直接返回，不弹出弹窗
+        if (isFuture === true || isFuture === 'true') {
+            console.log("未来日期，禁止点击");
+            return;
+        }
+
+        // 检查是否为有效日期
+        if (!dateStr || dateStr === '' || dateStr === 'None') {
+            console.log("无效日期，跳过");
+            return;
+        }
+
+        // 检查是否为当前月
+        if (isCurrentMonth === false || isCurrentMonth === 'false') {
+            console.log("非当前月日期，跳过");
+            return;
+        }
+
+        console.log("处理有效日期:", dateStr);
+
+        try {
+            // 安全解析日期
+            var dateParts = dateStr.split('-');
+            if (dateParts.length !== 3) {
+                console.error("日期格式错误:", dateStr);
+                return;
+            }
+
+            var year = parseInt(dateParts[0]);
+            var month = parseInt(dateParts[1]) - 1;
+            var day = parseInt(dateParts[2]);
+
+            var date = new Date(year, month, day);
+            if (isNaN(date.getTime())) {
+                console.error("无效的日期对象");
+                return;
+            }
+
+            // 格式化日期显示
+            var formattedDate = date.getFullYear() + '年' +
+                               (date.getMonth() + 1) + '月' +
+                               date.getDate() + '日 (' +
+                               getWeekday(date.getDay()) + ')';
+
+            console.log("格式化日期:", formattedDate);
+
+            // 显示选中的日期
+            $('#selectedDateText').text(formattedDate);
+
+            // 获取该日期的经期信息
+            $.get('/period/info/', {date: dateStr}, function(data) {
+                if (data.success) {
+                    updateDatePanel(dateStr, data);
+                } else {
+                    console.error("获取经期信息失败:", data.message);
+                    // 显示基本操作
+                    showBasicDatePanel(dateStr);
+                }
+            }).fail(function() {
+                // 如果请求失败，显示基本操作
+                showBasicDatePanel(dateStr);
+            });
+
+        } catch (error) {
+            console.error("日期处理错误:", error);
+            // 显示基本操作作为后备
+            showBasicDatePanel(dateStr);
+        }
+    });
+
+    // 更新日期面板内容
+    function updateDatePanel(dateStr, data) {
+        console.log("更新日期面板:", dateStr, data);
+
+        var actionsHtml = '';
+        var hasStartButton = false;
+
+        if (isUserAuthenticated) {
+            if (data.is_start_possible && !hasStartButton) {
+                actionsHtml += '<button class="btn btn-pink btn-sm mb-2" id="setPeriodStart" data-date="' + dateStr + '">标记经期开始</button>';
+                hasStartButton = true;
+            }
+
+            // 经期记录调整选项
+            if (data.end_candidate_records && data.end_candidate_records.length > 0) {
+                actionsHtml += '<div class="period-adjustment-options">';
+                actionsHtml += '<p class="adjustment-title"><strong>调整经期记录：</strong></p>';
+
+                data.end_candidate_records.forEach(function(record, index) {
+                    var predictionStatus = record.is_predicted ? ' (预测)' : ' (确认)';
+
+                    actionsHtml += '<div class="record-adjustment">';
+                    actionsHtml += '<p class="record-info">' + record.start_date + ' 开始' + predictionStatus + '</p>';
+
+                    // 设置为开始日期
+                    actionsHtml += '<button class="btn btn-pink btn-xs set-start-date" ' +
+                                  'data-record-id="' + record.id + '" ' +
+                                  'data-date="' + dateStr + '">设为开始日期</button>';
+
+                    // 调整为整个期间
+                    actionsHtml += '<button class="btn btn-pink btn-xs adjust-period" ' +
+                                  'data-record-id="' + record.id + '" ' +
+                                  'data-start-date="' + record.start_date + '" ' +
+                                  'data-end-date="' + dateStr + '">调整为 ' + record.start_date + ' 至 ' + dateStr + '</button>';
+
+                    actionsHtml += '</div>';
+
+                    if (index < data.end_candidate_records.length - 1) {
+                        actionsHtml += '<hr class="record-separator">';
+                    }
+                });
+
+                actionsHtml += '</div>';
+            } else {
+                if (!data.is_start_possible) {
+                    actionsHtml += '<p class="text-muted">该日期已有经期记录</p>';
+                }
+            }
+        } else {
+            actionsHtml += '<p class="text-muted">请先登录以使用经期记录功能</p>';
+        }
+
+        // 检查是否已经添加了开始按钮，如果没有但可以开始，则添加
+        if (isUserAuthenticated && data.is_start_possible && !hasStartButton) {
+            actionsHtml += '<button class="btn btn-pink btn-sm mb-2" id="setPeriodStart" data-date="' + dateStr + '">标记经期开始</button>';
+        }
+
+        actionsHtml += '<button class="btn btn-default btn-sm mt-2" id="clearDate">关闭</button>';
+
+        $('#dateActions').html(actionsHtml);
+        showDatePanel();
+
+        // 绑定新按钮的事件
+        bindDatePanelEvents(dateStr);
+    }
+
+    // 基本操作面板
+    function showBasicDatePanel(dateStr) {
+        console.log("显示基本日期面板:", dateStr);
+
+        var date = new Date(dateStr);
+        var formattedDate = date.getFullYear() + '年' +
+                           (date.getMonth() + 1) + '月' +
+                           date.getDate() + '日 (' +
+                           getWeekday(date.getDay()) + ')';
+
+        $('#selectedDateText').text(formattedDate);
+
+        var actionsHtml = '';
+        var hasStartButton = false;
+
+        if (isUserAuthenticated) {
+            if (!hasStartButton) {
+                actionsHtml += '<button class="btn btn-pink btn-sm mb-2" id="setPeriodStart" data-date="' + dateStr + '">标记经期开始</button>';
+                hasStartButton = true;
+            }
+
+            actionsHtml += '<button class="btn btn-pink btn-sm mb-2" id="setPeriodEnd" data-date="' + dateStr + '">标记经期结束</button>';
+        } else {
+            actionsHtml += '<p class="text-muted">请先登录以使用经期记录功能</p>';
+        }
+
+        actionsHtml += '<button class="btn btn-default btn-sm" id="clearDate">关闭</button>';
+
+        $('#dateActions').html(actionsHtml);
+        showDatePanel();
+
+        // 绑定事件
+        bindDatePanelEvents(dateStr);
+    }
+
+    // 显示日期面板
+    function showDatePanel() {
+        console.log("显示面板");
+        $('#datePanel').show();
+        $('#overlay').show();
+    }
+
+    // 绑定日期面板事件
+    function bindDatePanelEvents(dateStr) {
+        // 标记经期开始
+        $('#setPeriodStart').off('click').on('click', function() {
+            var date = $(this).data('date');
+            console.log("标记经期开始:", date);
+            setPeriodStart(date);
+        });
+
+        // 标记经期结束
+        $('#setPeriodEnd').off('click').on('click', function() {
+            var date = $(this).data('date');
+            console.log("标记经期结束:", date);
+            setPeriodEnd(date);
+        });
+
+        // 设置为开始日期
+        $('.set-start-date').off('click').on('click', function() {
+            var recordId = $(this).data('record-id');
+            var startDate = $(this).data('date');
+            console.log("设置开始日期:", recordId, startDate);
+            adjustPeriod(recordId, startDate, null, 'start');
+        });
+
+        // 调整整个期间
+        $('.adjust-period').off('click').on('click', function() {
+            var recordId = $(this).data('record-id');
+            var startDate = $(this).data('start-date');
+            var endDate = $(this).data('end-date');
+            console.log("调整整个期间:", recordId, startDate, endDate);
+            adjustPeriod(recordId, startDate, endDate, 'both');
+        });
+
+        // 关闭面板
+        $('#clearDate').off('click').on('click', closeDatePanel);
+    }
+
+    // 关闭日期面板
+    function closeDatePanel() {
+        console.log("关闭面板");
+        $('#datePanel').hide();
+        $('#overlay').hide();
+        $('.clickable-day').removeClass('selected');
+    }
+
+    // 关闭按钮事件
+    $('#closePanel').click(closeDatePanel);
+    $('#overlay').click(closeDatePanel);
+
+    // 标记经期开始
+    function setPeriodStart(dateStr) {
+        console.log("标记经期开始:", dateStr);
+
+        $.ajax({
+            url: '/period/start/',
+            type: 'POST',
+            data: {
+                'csrfmiddlewaretoken': getCSRFToken(),
+                'start_date': dateStr
+            },
+            success: function(data) {
+                if (data.success) {
+                    alert('经期开始标记成功！');
+                    closeDatePanel();
+                    location.reload();
+                } else {
+                    alert('标记失败: ' + data.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('请求失败: ' + error);
+            }
+        });
+    }
+
+    // 标记经期结束
+    function setPeriodEnd(dateStr) {
+        console.log("标记经期结束:", dateStr);
+
+        $.ajax({
+            url: '/period/end/',
+            type: 'POST',
+            data: {
+                'csrfmiddlewaretoken': getCSRFToken(),
+                'end_date': dateStr
+            },
+            success: function(data) {
+                if (data.success) {
+                    alert('经期结束日期已成功更新！');
+                    closeDatePanel();
+                    location.reload();
+                } else {
+                    alert('标记失败: ' + data.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('请求失败: ' + error);
+            }
+        });
+    }
+
+    // 调整经期记录
+    function adjustPeriod(recordId, startDate, endDate, action) {
+        console.log("调整经期记录:", recordId, startDate, endDate, action);
+
+        var requestData = {
+            'csrfmiddlewaretoken': getCSRFToken(),
+            'record_id': recordId,
+            'action': action
+        };
+
+        if (startDate) requestData.start_date = startDate;
+        if (endDate) requestData.end_date = endDate;
+
+        $.ajax({
+            url: '/period/adjust/',
+            type: 'POST',
+            data: requestData,
+            success: function(data) {
+                if (data.success) {
+                    alert('经期记录已成功调整！');
+                    closeDatePanel();
+                    location.reload();
+                } else {
+                    alert('调整失败: ' + data.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('请求失败: ' + error);
+            }
+        });
+    }
+
+    // 获取CSRF令牌
+    function getCSRFToken() {
+        var csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
+        if (!csrfToken) {
+            var cookieMatch = document.cookie.match(/csrftoken=([^;]+)/);
+            csrfToken = cookieMatch ? cookieMatch[1] : '';
+        }
+        return csrfToken;
+    }
+
+    // 将星期数字转换为中文
+    function getWeekday(day) {
+        var weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+        return '星期' + weekdays[day];
+    }
+
+    // 如果当前显示的是本月，自动高亮今天
+    var today = new Date();
+    var currentYear = today.getFullYear();
+    var currentMonth = today.getMonth() + 1;
+
+    if ({{ current_year }} === currentYear && {{ current_month }} === currentMonth) {
+        // 页面加载后高亮今天
+        setTimeout(highlightToday, 500);
+    }
+
+    // 其他功能保持不变
+    // 保存基础信息
+    $('#saveProfile').click(function() {
+        var formData = $('#profileForm').serialize();
+
+        $.ajax({
+            url: '/period/set-profile-ajax/',
+            type: 'POST',
+            data: formData,
+            success: function(data) {
+                if (data.success) {
+                    alert('基础信息保存成功');
+                    $('#profileModal').modal('hide');
+                    location.reload();
+                } else {
+                    alert('保存失败: ' + data.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('请求失败: ' + error);
+            }
+        });
+    });
+
+    // 删除经期记录
+    $(document).on('click', '.delete-record', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        var recordId = $(this).data('record-id');
+        console.log("删除记录:", recordId);
+
+        if (!confirm('确定要删除这条经期记录吗？')) {
+            return;
+        }
+
+        $.ajax({
+            url: '/period/delete/' + recordId + '/',
+            type: 'POST',
+            data: {
+                'csrfmiddlewaretoken': getCSRFToken()
+            },
+            success: function(data) {
+                if (data.success) {
+                    alert('记录删除成功');
+                    location.reload();
+                } else {
+                    alert('删除失败: ' + data.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('请求失败: ' + error);
+            }
+        });
+    });
+
+    console.log("=== 所有事件绑定完成 ===");
+});
+</script>
+
+<style>
+/* 今天按钮样式 */
+.btn-info {
+    background-color: #5bc0de;
+    border-color: #46b8da;
+    color: white;
+}
+
+.btn-info:hover {
+    background-color: #31b0d5;
+    border-color: #269abc;
+}
+
+/* 今天日期高亮样式 */
+.today-highlight {
+    background-color: #ffffcc !important;
+    box-shadow: 0 0 0 2px #ffcc00;
+    position: relative;
+    z-index: 10;
+}
+
+.today-highlight-animate {
+    animation: pulse 1s 2.7;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 204, 0, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 204, 0, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 204, 0, 0);
+    }
+}
+
+/* 未来日期样式 - 不可点击 */
+.future-day {
+    cursor: not-allowed;
+    opacity: 0.7;
+    position: relative;
+}
+
+.non-clickable {
+    pointer-events: none;
+}
+
+/* 确保高亮在各类日期样式之上 */
+.period-day.today-highlight {
+    background: linear-gradient(135deg, #ffe6e6, #ffffcc) !important;
+}
+
+.predicted-day.today-highlight {
+    background: linear-gradient(135deg, #e7f5ff, #ffffcc) !important;
+}
+
+.other-month.today-highlight {
+    background: linear-gradient(135deg, #f9f9f9, #ffffcc) !important;
+}
+
+.future-day.today-highlight {
+    background: linear-gradient(135deg, #f8f9fa, #ffffcc) !important;
+}
+
+/* 图例样式 */
+.calendar-legend {
+    display: flex;
+    justify-content: center;
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin: 0 10px;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    margin-right: 5px;
+}
+
+.period-color {
+    background-color: #ffe6e6;
+}
+
+.prediction-current-color {
+    background-color: #e7f5ff;
+    border: 1px solid #a5d8ff;
+}
+
+.prediction-next-color {
+    background-color: #f3f9ff;
+    border: 1px dashed #a5d8ff;
+}
+
+.future-color {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+}
+
+.legend-text {
+    font-size: 14px;
+    color: #666;
+}
+
+
+
+/* 增强预测日期的背景色 - 纯蓝色版本 */
+.current-prediction {
+    background-color: #e7f5ff !important;
+    border: 2px solid #a5d8ff !important;
+
+}
+
+.next-prediction {
+    background-color: #e3f2fd !important;
+    border: 2px dashed #4fc3f7 !important;
+
+}
+
+</style>
+
+{% endblock %}
