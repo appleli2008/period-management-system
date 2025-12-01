@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}设置基础信息 - 经期管理系统{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 col-md-offset-3">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <h2 class="text-center">设置基础信息</h2>
+                <p class="text-center text-muted">请设置您的生理周期基础信息，这将帮助我们更好地为您服务</p>
+
+                {% if error %}
+                <div class="alert alert-danger">{{ error }}</div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="cycle_length">月经间隔天数 (15-45天)</label>
+                        <select class="form-control" id="cycle_length" name="cycle_length" required>
+                            <option value="">请选择</option>
+                            {% for i in "123456789" %}
+                            <option value="{{ forloop.counter|add:14 }}"
+                                {% if profile.cycle_length == forloop.counter|add:14 or cycle_length == forloop.counter|add:14 %}selected{% endif %}>
+                                {{ forloop.counter|add:14 }}天
+                            </option>
+                            {% endfor %}
+                            {% for i in "123456789" %}
+                            <option value="{{ forloop.counter|add:23 }}"
+                                {% if profile.cycle_length == forloop.counter|add:23 or cycle_length == forloop.counter|add:23 %}selected{% endif %}>
+                                {{ forloop.counter|add:23 }}天
+                            </option>
+                            {% endfor %}
+                            {% for i in "123456789" %}
+                            <option value="{{ forloop.counter|add:32 }}"
+                                {% if profile.cycle_length == forloop.counter|add:32 or cycle_length == forloop.counter|add:32 %}selected{% endif %}>
+                                {{ forloop.counter|add:32 }}天
+                            </option>
+                            {% endfor %}
+                            {% for i in "123456789" %}
+                            <option value="{{ forloop.counter|add:41 }}"
+                                {% if profile.cycle_length == forloop.counter|add:41 or cycle_length == forloop.counter|add:41 %}selected{% endif %}>
+                                {{ forloop.counter|add:41 }}天
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="period_length">经期持续天数 (1-10天)</label>
+                        <select class="form-control" id="period_length" name="period_length" required>
+                            <option value="">请选择</option>
+                            {% for i in "12345678910" %}
+                            <option value="{{ forloop.counter }}"
+                                {% if profile.period_length == forloop.counter or period_length == forloop.counter %}selected{% endif %}>
+                                {{ forloop.counter }}天
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-pink btn-block">保存设置</button>
+
+                    {% if profile %}
+                    <a href="/" class="btn btn-default btn-block" style="margin-top: 10px;">返回首页</a>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
